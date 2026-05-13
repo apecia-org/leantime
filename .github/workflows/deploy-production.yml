@@ -3,7 +3,7 @@ name: Deploy production
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -49,7 +49,7 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          BRANCH="${GITHUB_REF_NAME:-master}"
+          BRANCH="${GITHUB_REF_NAME:-main}"
           REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           DEPLOY_DIR="${DEPLOY_DIR:-$HOME/apps/${GITHUB_REPOSITORY##*/}}"
           DEPLOY_DIR="${DEPLOY_DIR/#\~/$HOME}"
