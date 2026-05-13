@@ -67,7 +67,7 @@ jobs:
             git -C "$DEPLOY_DIR" reset --hard "origin/$BRANCH"
             git -C "$DEPLOY_DIR" clean -ffdx \
               -e .env \
-              -e db_data
+              -e db_data \
               -e fastmcp-python/.env
           else
             rm -rf "$DEPLOY_DIR"
@@ -158,3 +158,22 @@ jobs:
           docker compose ps
           docker compose logs --tail=100 leantime
           exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          if [ ! -d "$DEPLOY_DIR/.git" ]; then
+            echo "No git repo at $DEPLOY_DIR — nothing to roll back"
+            exit 0
+          fi
+
+          cd "$DEPLOY_DIR"
+
+          if [ -n "$(docker compose ps -q 2>/dev/null)" ]; then
+            docker compose down
+          fi
+
+          git reset --hard HEAD^
