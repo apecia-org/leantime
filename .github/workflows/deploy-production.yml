@@ -3,7 +3,7 @@ name: Deploy production
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 concurrency:
@@ -48,7 +48,7 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          BRANCH="${GITHUB_REF_NAME:-main}"
+          BRANCH="${GITHUB_REF_NAME:-master}"
           REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           DEPLOY_DIR="${DEPLOY_DIR:-$HOME/apps/${GITHUB_REPOSITORY##*/}}"
           DEPLOY_DIR="${DEPLOY_DIR/#\~/$HOME}"
@@ -129,23 +129,23 @@ jobs:
 
           cd "$DEPLOY_DIR"
 
-          SERVICE_ID="$(docker compose ps -q app)"
+          SERVICE_ID="$(docker compose ps -q leantime)"
           if [ -z "$SERVICE_ID" ]; then
-            echo "app service did not start"
+            echo "leantime service did not start"
             docker compose ps
             exit 1
           fi
 
           RUNNING="$(docker inspect --format='{{.State.Running}}' "$SERVICE_ID")"
           if [ "$RUNNING" != "true" ]; then
-            echo "app container is not running"
+            echo "leantime container is not running"
             docker compose ps
-            docker compose logs --tail=100 app
+            docker compose logs --tail=100 leantime
             exit 1
           fi
 
           for attempt in $(seq 1 30); do
-            if docker exec dcs-app curl -sf http://localhost:3000/api/dcs/health >/dev/null 2>&1; then
+            if docker exec leantime curl -sf http://localhost:8080/widgets/welcome/get >/dev/null 2>&1; then
               echo "Health check passed on attempt $attempt"
               docker compose ps
               exit 0
@@ -154,7 +154,7 @@ jobs:
             sleep 2
           done
 
-          echo "app did not become healthy after 60s"
+          echo "leantime did not become healthy after 60s"
           docker compose ps
-          docker compose logs --tail=100 app
+          docker compose logs --tail=100 leantime
           exit 1
