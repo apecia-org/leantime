@@ -3,7 +3,7 @@ version: '3.3'
 services:
   leantime_db:
     image: mysql:8.4
-    container_name: leantime-mysql
+    container_name: mysql_leantime
     volumes:
       - ./db_data:/var/lib/mysql
     restart: unless-stopped
@@ -28,7 +28,7 @@ services:
       - leantime-net
   leantime:
     image: leantime/leantime:3.7.3 # ${LEAN_VERSION:-latest}
-    container_name: leantime
+    container_name: leantime-app
     restart: unless-stopped
     env_file: ./.env                                        # Environment file with settings
     # Add security options
@@ -61,10 +61,10 @@ services:
       - leantime-net
       - traefik-public
     volumes:
-      - public_userfiles:/var/www/html/public/userfiles     # Volume to store public files, logo etc
-      - userfiles:/var/www/html/userfiles                   # Original volume name for compatibility
-      - plugins:/var/www/html/app/Plugins                   # Plugin storage
-      - logs:/var/www/html/storage/logs                     # Log storage
+      - ./leantime/public_userfiles:/var/www/html/public/userfiles     # Volume to store public files, logo etc
+      - ./leantime/userfiles:/var/www/html/userfiles                   # Original volume name for compatibility
+      - ./leantime/plugins:/var/www/html/app/Plugins                   # Plugin storage
+      - ./leantime/logs:/var/www/html/storage/logs                     # Log storage
     depends_on:
       leantime_db:
         condition: service_healthy
@@ -79,12 +79,6 @@ services:
       - db_data:/var/lib/mysql
     user: root
     profiles: [ "helper" ]
-
-volumes:
-  userfiles:                                               # New volume for public files
-  public_userfiles:
-  plugins:
-  logs:
 
 networks:
   leantime-net:
