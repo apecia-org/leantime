@@ -70,6 +70,7 @@ jobs:
               -e .env \
               -e db_data \
               -e fastmcp-python/.env
+              -e leantime 
           else
             rm -rf "$DEPLOY_DIR"
             git clone --branch "$BRANCH" "$REPO_URL" "$DEPLOY_DIR"
